@@ -1,12 +1,9 @@
 import sys, os, argparse, logging
 from dataclasses import dataclass
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from typing import List
 
-# Setup the workbook
-workbook = load_workbook(filename="smart.xlsx")  # read_only=True breaks iter_rows.  
-sheet = workbook.active
-
+# Setup: see the main class.
 
 ##  Column mapping (zero-indexed)
 # Participants
@@ -171,6 +168,25 @@ def pretty_print_teams(teams):
         for member in team.members:
             print(f'- {member.first_name} {member.last_name}\tNationality: {member.nationality}\tField: {member.field}')
 
+def print_rows(sheet):
+    """ Take sheet (workbook.active) and print out spreadsheet rows. """
+    for row in sheet.iter_rows(values_only=True):
+        print(row)
+
+def create_mailmerge(teams: List, output_workbook, output_sheet, output_filename, titles):
+    """ Take a list of team objects, an output spreadsheet, and the spreadsheet title column 
+    and append the data to the output spreadsheet. """
+    output_sheet.append(titles)
+    for team in teams:
+        data = [team.id]
+        for member in team.members:
+            data.append(member.first_name)
+            data.append(member.last_name)
+            data.append(member.email)
+        output_sheet.append(data)
+
+    output_workbook.save(output_filename)
+
 
 class Template:
     """
@@ -190,6 +206,30 @@ class Template:
         # self.work_dir = 'C:\\Documents and Settings\\myname' <-- replace myname with a real directory
 
         self.work_dir = '.'
+        self.input_filename = "smart.xlsx"
+        self.input_workbook = load_workbook(filename=self.input_filename)  # read_only=True breaks iter_rows
+        self.input_sheet = self.input_workbook.active
+        self.output_filename = 'smart_mail_merge.xlsx'
+        self.output_workbook = Workbook()
+        self.output_sheet = self.output_workbook.active
+        self.spreadsheet_titles = [
+            "Team ID",
+            "First Name 1",
+            "Last Name 1",
+            "Email 1",
+            "First Name 2",
+            "Last Name 2",
+            "Email 2",
+            "First Name 3",
+            "Last Name 3",
+            "Email 3",
+            "First Name 4",
+            "Last Name 4",
+            "Email 4",
+            "First Name 5",
+            "Last Name 5",
+            "Email 5",
+        ]
 
 
     def get_options(self, argv):
@@ -232,8 +272,8 @@ class Template:
         logging.debug("self.work_dir is %s", self.work_dir)
 
         # Set everything up.
-        participants = get_participants(sheet)
-        teams = team_creator(sheet, self.team_size)
+        participants = get_participants(self.input_sheet)
+        teams = team_creator(self.input_sheet, self.team_size)
         full_teams = []
         popped = 0
         participants_popped = 0
@@ -297,7 +337,20 @@ class Template:
             rnd += 1
 
 
+        # See the output on the console.
         pretty_print_teams(full_teams)
+
+        # Write the output to a .xlsx file.
+# def create_mailmerge(teams: List, output_workbook, output_sheet, output_filename, titles):
+        create_mailmerge(
+            full_teams,
+            self.output_workbook,
+            self.output_sheet,
+            self.output_filename,
+            self.spreadsheet_titles
+        )
+        print_rows(self.output_sheet)
+
 
 
 if __name__ == '__main__':
