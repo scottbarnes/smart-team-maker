@@ -1,10 +1,11 @@
 # Larhgely from https://realpython.com/python-send-email/#option-2-setting-up-a-local-smtp-server
 
-import smtplib, ssl
+import smtplib, ssl, sys
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 # import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2.exceptions import TemplateNotFound
 
 def send_mail(
     mail_server,
@@ -25,7 +26,11 @@ def send_mail(
     template_loader = FileSystemLoader(searchpath='./email_templates')
     template_env = Environment(loader=template_loader)
     # template = 'initial_team_email.jinja2'
-    template = template_env.get_template(template)
+    try:
+        template = template_env.get_template(template)
+    except TemplateNotFound as e:
+        print(f'\nError: template name "{e}" could not be found.\nEnsure you\'ve entered a template FILENAME From the template directory and not a template PATH.')
+        sys.exit(1)
     body = template.render(**kwargs)
 
     print(f'to: {to}')

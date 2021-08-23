@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import List
 from openpyxl import load_workbook, Workbook
 import click
+from openpyxl.utils.exceptions import InvalidFileException
+from jinja2.exceptions import TemplateNotFound
 
 
 ##  Spreadsheet column mapping (zero-indexed)
@@ -408,13 +410,18 @@ def cli():
 @click.option(
     '--template',
     required=True,
-    help='Path to Jinja2 template associated with this email.',
+    help='Filename (not path) of Jinja2 template, as located in email_templates, associated with this email.',
 )
 
 def email_all_teams(server, port, sender, password, spreadsheet, subject, template):
     """ Send out email to all teams. """
     # Read in the spreadsheet data, as supplied on the command line.
-    workbook = load_workbook(filename=spreadsheet)  # read_only=True breaks iter_rows
+    try:
+        workbook = load_workbook(filename=spreadsheet)  # read_only=True breaks iter_rows
+    except InvalidFileException as e:
+        sys.exit(e)
+    except FileNotFoundError as e:
+        sys.exit(e)
     sheet = workbook.active
     participants = get_participants(sheet)
     # for participant in participants:
@@ -455,9 +462,9 @@ def make_fake_teams():
     """ Make fake teams. """
     fake_participants = 4
     fake_team_size = 2
-    fake_first_name = 'Jia-Wei'
-    fake_last_name = 'Chai'
-    username = 'composition1006'
+    fake_first_name = 'Scott'
+    fake_last_name = 'Barnes'
+    username = 'scottreidbarnes'
     domain = 'gmail.com'
     teams = fake_team_creator(fake_participants, fake_team_size)
 
