@@ -1,1 +1,2 @@
 openpyxl==3.0.7  # https://openpyxl.readthedocs.io/en/stable/
+click==8.0.1  # https://click.palletsprojects.com
