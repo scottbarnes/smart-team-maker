@@ -29,7 +29,7 @@ input_sheet = input_workbook.active
 output_filename = 'smart_mail_merge.xlsx'
 output_workbook = Workbook()
 output_sheet = output_workbook.active
-fake_output_filename = 'fake_smart_mail_merge.xlsx'
+fake_output_filename = 'fake_smart_teams.xlsx'
 fake_output_workbook = Workbook()
 fake_output_sheet = fake_output_workbook.active
 spreadsheet_titles = [
@@ -86,6 +86,13 @@ class Team:
     def member_count(self):
         return len(self.members)
 
+@dataclass
+class TeamScore:
+    id: int
+    plan_completeness: int
+    development_potential: int
+    pitch_execution: int
+    expected_benefits: int
 
 @dataclass
 class Participant:
@@ -101,7 +108,6 @@ class Participant:
     contact_number: str
     department: str
     degree: str
-
 
 def team_creator(spreadsheet, team_size) -> List:
     """ Take a spreadsheet and a number of members per team and return a list of 
@@ -290,7 +296,7 @@ def get_real_max_rows(spreadsheet):
 def pretty_print_teams(teams):
     """ Take a list of teams and pretty-print them. """
     for team in teams:
-        print(f'Team ID: {team.id}')
+        print(f'\nTeam ID: {team.id}')
         print(f'Member count: {team.member_count()}')
         for member in team.members:
             print(f'- {member.first_name} {member.last_name}\tNationality: {member.nationality}\tField: {member.field}\tUniversity: {member.university}')
@@ -489,7 +495,7 @@ def make_fake_teams():
 
     pretty_print_teams(teams)
 
-    # Write the output to a .xlsx file.
+    # Write the output to an .xlsx file.
     create_mailmerge(
         teams,
         fake_output_workbook,
@@ -498,9 +504,13 @@ def make_fake_teams():
         spreadsheet_titles
     )
     print_rows(output_sheet)
-
+    print(f'\nOutput written to ./{fake_output_filename}')
 
 @cli.command()
+# @click.option(
+#     '--output_filename',
+#     help='Output filename (smart_teams.xlsx, by default)'
+# )
 def make_teams():
     """
     Create teams and write them to an Excel file.
@@ -572,7 +582,6 @@ def make_teams():
         print(f'new round: {rnd}')
         rnd += 1
 
-
     # See the output on the console.
     pretty_print_teams(full_teams)
 
@@ -584,7 +593,146 @@ def make_teams():
         output_filename,
         spreadsheet_titles
     )
-    print_rows(output_sheet)
+    # print_rows(output_sheet)
+
+    print(f'\nTeams written to ./{output_filename}')
+
+
+def update_score(dictionary, team_number, criterion, points):
+    """ Make sure a team exists, if not, create it, and either way, update its points. """
+    team = dictionary.get(team_number)  # None if non-existent.
+    if not team:
+        print(f'Creating Team {team_number}')
+        dictionary[team_number] = TeamScore(
+            id=team_number,
+            plan_completeness=0,
+            development_potential=0,
+            pitch_execution=0,
+            expected_benefits=0,
+        )
+
+    print(f'Updating Team {team_number} to have {points} points for {criterion}')
+    team = dictionary.get(team_number)
+    if criterion == 'plan_completeness':
+        team.plan_completeness = points
+    elif criterion == 'development_potential':
+        team.development_potential = points
+    elif criterion == 'pitch_execution':
+        team.pitch_execution = points
+    elif criterion == 'expected_benefits':
+        team.expected_benefits = points
+    else:
+        raise ValueError('Unknown judging criteria')
+
+@cli.command()
+@click.option(
+    '--file',
+    required=True,
+    help='Path to the scores spreadsheet greated by Google Forms'
+)
+def get_team_scores(file):
+    """ Tally the scores from the Google Form .xlsx sheet and print them out. """
+    try:
+        workbook = load_workbook(filename=file)
+    except InvalidFileException as e:
+        sys.exit(e)
+    except FileNotFoundError as e:
+        sys.exit(e)
+    sheet = workbook.active
+    scores = {}  # Set up the main dictionary
+    for row in sheet.iter_rows(values_only=True):
+        # Filter out the header row.
+        if type(row[1]) == str:
+            continue
+
+        # There has to be a better way.
+        for index, cell in enumerate(row):
+            # Plan completeness
+            if index == 1:
+                team_number = int(cell)
+                criterion = 'plan_completeness'
+                update_score(scores, team_number, criterion, 5)
+            elif index == 2:
+                team_number = int(cell)
+                criterion = 'plan_completeness'
+                update_score(scores, team_number, criterion, 4)
+            elif index == 3:
+                team_number = int(cell)
+                criterion = 'plan_completeness'
+                update_score(scores, team_number, criterion, 3)
+            elif index == 4:
+                team_number = int(cell)
+                criterion = 'plan_completeness'
+                update_score(scores, team_number, criterion, 2)
+            elif index == 5:
+                team_number = int(cell)
+                criterion = 'plan_completeness'
+                update_score(scores, team_number, criterion, 1)
+            # Development potential
+            if index == 6:
+                team_number = int(cell)
+                criterion = 'development_potential'
+                update_score(scores, team_number, criterion, 5)
+            elif index == 7:
+                team_number = int(cell)
+                criterion = 'development_potential'
+                update_score(scores, team_number, criterion, 4)
+            elif index == 8:
+                team_number = int(cell)
+                criterion = 'development_potential'
+                update_score(scores, team_number, criterion, 3)
+            elif index == 9:
+                team_number = int(cell)
+                criterion = 'development_potential'
+                update_score(scores, team_number, criterion, 2)
+            elif index == 10:
+                team_number = int(cell)
+                criterion = 'development_potential'
+                update_score(scores, team_number, criterion, 1)
+            # Pitch execution
+            if index == 11:
+                team_number = int(cell)
+                criterion = 'pitch_execution'
+                update_score(scores, team_number, criterion, 5)
+            elif index == 12:
+                team_number = int(cell)
+                criterion = 'pitch_execution'
+                update_score(scores, team_number, criterion, 4)
+            elif index == 13:
+                team_number = int(cell)
+                criterion = 'pitch_execution'
+                update_score(scores, team_number, criterion, 3)
+            elif index == 14:
+                team_number = int(cell)
+                criterion = 'pitch_execution'
+                update_score(scores, team_number, criterion, 2)
+            elif index == 15:
+                team_number = int(cell)
+                criterion = 'pitch_execution'
+                update_score(scores, team_number, criterion, 1)
+            # Expected benefits
+            if index == 16:
+                team_number = int(cell)
+                criterion = 'expected_benefits'
+                update_score(scores, team_number, criterion, 5)
+            elif index == 17:
+                team_number = int(cell)
+                criterion = 'expected_benefits'
+                update_score(scores, team_number, criterion, 4)
+            elif index == 18:
+                team_number = int(cell)
+                criterion = 'expected_benefits'
+                update_score(scores, team_number, criterion, 3)
+            elif index == 19:
+                team_number = int(cell)
+                criterion = 'expected_benefits'
+                update_score(scores, team_number, criterion, 2)
+            elif index == 20:
+                team_number = int(cell)
+                criterion = 'expected_benefits'
+                update_score(scores, team_number, criterion, 1)
+
+        print(scores)
 
 if __name__ == '__main__':
     cli()
