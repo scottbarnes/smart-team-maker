@@ -463,6 +463,18 @@ def add_participant_to_their_team(participants: List, teams: List):
         teams[participant.team_id - 1].members.append(participant)  # -1 b/c zero index.
     print(teams)
 
+def participant_de_dupe(participants) -> List:
+    """ Take a list of participants and return a deduped list (based on email). """
+    checked_emails = []
+    deduped = []
+    for participant in participants:
+        email = participant.email
+        if email not in checked_emails:
+            checked_emails.append(email)
+            deduped.append(participant)
+
+    return deduped
+
 @cli.command()
 def make_fake_teams():
     """ Make fake teams. """
@@ -519,6 +531,8 @@ def make_teams():
 
     # Set everything up.
     participants = get_participants(input_sheet)
+    # dedupe participants list
+    participants = participant_de_dupe(participants)
     teams = team_creator(input_sheet, team_size)
     full_teams = []
     popped = 0
@@ -733,6 +747,8 @@ def get_team_scores(file):
                 update_score(scores, team_number, criterion, 1)
 
         print(scores)
+        print(scores.get(22))
+
 
 if __name__ == '__main__':
     cli()
