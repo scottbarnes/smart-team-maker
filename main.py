@@ -94,6 +94,14 @@ class TeamScore:
     pitch_execution: int
     expected_benefits: int
 
+    # Return the total score, scaled to be out of 100.
+    def score(self):
+        result = (20 * (self.plan_completeness / 5)) \
+                + (30 * (self.development_potential / 5)) \
+                + (20 * (self.pitch_execution / 5)) \
+                + (30 * (self.expected_benefits / 5))
+        return result
+
 @dataclass
 class Participant:
     id: int
@@ -613,7 +621,7 @@ def make_teams():
 
 
 def update_score(dictionary, team_number, criterion, points):
-    """ Make sure a team exists, if not, create it, and either way, update its points. """
+    """ Make sure a team exists; if not, create it, and either way, update its points. """
     team = dictionary.get(team_number)  # None if non-existent.
     if not team:
         print(f'Creating Team {team_number}')
@@ -746,8 +754,20 @@ def get_team_scores(file):
                 criterion = 'expected_benefits'
                 update_score(scores, team_number, criterion, 1)
 
-        print(scores)
-        print(scores.get(22))
+        # 'scores' is a dictionary with key, value as team_id and team_object.
+        # Get an iterable of all of those objects so we can work on them more easily.
+        teams = scores.values()
+        # Create a score dictionary with k, v team_id and score.
+        score_d = {}
+        for team in teams:
+            print(f'Team {team.id} scored {team.score()}')
+            score_d[team.id] = team.score()
+
+        # Sort the scores dictionary, lowest to highest.
+        results = {k: v for k, v in sorted(score_d.items(), key=lambda item: item[1])}
+        print(f'Results: {results}')
+        for k in results:
+            print(f'Team {k} scored {results.get(k)} out of 100.')
 
 
 if __name__ == '__main__':
