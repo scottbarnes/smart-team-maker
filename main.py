@@ -23,10 +23,6 @@ UNIVERSITY_COUNTRY = 12
 
 ## Some default values
 work_dir = '.'
-input_filename = "smart.xlsx"
-input_workbook = load_workbook(filename=input_filename)  # read_only=True breaks iter_rows
-input_sheet = input_workbook.active
-output_filename = 'smart_mail_merge.xlsx'
 output_workbook = Workbook()
 output_sheet = output_workbook.active
 fake_output_filename = 'fake_smart_teams.xlsx'
@@ -213,6 +209,8 @@ def nationality_normalizer(nationality: str) -> str:
     nationality = str(nationality).lower()
     if 'bangl'.lower() in nationality:
         return 'Bangladeshi'
+    elif 'fili'.lower() in nationality:
+        return 'Filipino'
     elif 'india'.lower() in nationality:
         return 'Indian'
     elif 'indo'.lower() in nationality:
@@ -253,7 +251,6 @@ def inject_participant(team, participant, team_size, rnd) -> bool:
 
     # Allow two Indians in first, owing to their enthusiasm.
     if rnd <= 5:
-        # Fill teams with two Indian participants, owing to their enthusiasm.
         if participant.nationality == 'Indian' and (team.nationalities().count('Indian') <= 1):
             print(f'Adding Indian {participant.first_name}')
             return True
@@ -336,49 +333,6 @@ def create_mailmerge(teams: List, output_workbook, output_sheet, output_filename
             output_sheet.append(data)
 
     output_workbook.save(output_filename)
-
-
-## old format 
-# def create_mailmerge(teams: List, output_workbook, output_sheet, output_filename, titles):
-#     """ Take a list of team objects, an output spreadsheet, and the spreadsheet title column 
-#     and append the data to the output spreadsheet. """
-#     output_sheet.append(titles)
-#     for team in teams:
-#         data = [team.id]
-#         for member in team.members:
-#             data.append(member.first_name)
-#             data.append(member.last_name)
-#             data.append(member.email)
-#         output_sheet.append(data)
-
-#     output_workbook.save(output_filename)
-
-# Create a list of teams
-# def get_teams(spreadsheet) -> List:
-#     """ Take an openpyxl sheet and return a list of teams, one per row. """
-#     result = []
-#     for index, row in enumerate(spreadsheet.iter_rows(min_row=1,
-#                                                 values_only=True)):
-#         # Filter out the empty rows Google Docs creates.
-#         if row[0] == None:
-#             continue
-
-#         result.append(
-#             Participant(id=index,
-#                         field=row[FIELD],
-#                         nationality=nationality_normalizer(row[NATIONALITY]),
-#                         university=university_finder(row, UNIVERSITY_COLUMNS),
-#                         university_country=row[UNIVERSITY_COUNTRY],
-#                         first_name=row[FIRST_NAME],
-#                         last_name=row[LAST_NAME],
-#                         email=row[EMAIL],
-#                         contact_number=row[CONTACT_NUMBER],
-#                         department=row[DEPARTMENT],
-#                         degree=row[DEGREE],
-#                         team_id=0,
-#                        )
-#         )
-#     return result
 
 
 # Click group setup
@@ -527,15 +481,29 @@ def make_fake_teams():
     print(f'\nOutput written to ./{fake_output_filename}')
 
 @cli.command()
-# @click.option(
-#     '--output_filename',
-#     help='Output filename (smart_teams.xlsx, by default)'
-# )
-def make_teams():
+@click.option(
+    '--input_filename',
+    '-i',
+    default='smart_registration.xlsx',
+    help='Input filename (smart_registration.xlsx, by default)'
+)
+@click.option(
+    '--output_filename',
+    '-o',
+    default='smart_teams.xlsx',
+    help='Output filename (smart_teams.xlsx, by default)'
+)
+@click.option(
+    '--team_size',
+    default=5,
+    help='Team size (5 by default)',
+)
+def make_teams(input_filename, output_filename, team_size):
     """
     Create teams and write them to an Excel file.
     """
-    team_size = 5
+    input_workbook = load_workbook(filename=input_filename)  # read_only=True breaks iter_rows
+    input_sheet = input_workbook.active
 
     # Set everything up.
     participants = get_participants(input_sheet)
