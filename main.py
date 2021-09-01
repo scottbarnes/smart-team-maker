@@ -422,7 +422,7 @@ def add_participant_to_their_team(participants: List, teams: List):
     """ Go through the rows of participants and add them to their teams. """
     for participant in participants:
         # print(f'Adding {participant.first_name} with Team ID {participant.team_id} to Team {teams[participant.team_id - 1]}\n')
-        teams[participant.team_id - 1].members.append(participant)  # -1 b/c zero index.
+        teams[int(participant.team_id) - 1].members.append(participant)  # -1 b/c zero index.
     print(teams)
 
 def participant_de_dupe(participants) -> List:
