@@ -116,15 +116,22 @@ class Participant:
 def team_creator(spreadsheet, team_size) -> List:
     """ Take a spreadsheet and a number of members per team and return a list of 
     teams with the number of members defined by team_size. """
-    total_participants = get_real_max_rows(spreadsheet) + team_size  # Add another team to hold the remainder
+    # total_participants = get_real_max_rows(spreadsheet) + team_size  # Add another team to hold the remainder
+    total_participants = 650
     total_teams = total_participants // team_size  # number of teams
     result = []
     # Loop total_teams to create the team objects.
+    # i = 1  # start at 1
+    # while i < (total_teams + 1):
+    #     result.append(Team(id=i, members=[]))
+    #     i += 1
+    # return result
     i = 1  # start at 1
-    while i < (total_teams + 1):
+    while i < 131:
         result.append(Team(id=i, members=[]))
         i += 1
     return result
+    
 
 def fake_team_creator(participant_num, team_size) -> List:
     """ Take a number of fake participants and a team size and return a list of teams. """
@@ -399,6 +406,7 @@ def email_all_teams(server, port, sender, password, spreadsheet, subject, templa
     number_of_teams = find_highest_team_number(participants)
     # print(number_of_teams)
     teams = team_creator(sheet, number_of_teams)
+    print(f'Teams in email_all_teams has the value: {teams}')
     add_participant_to_their_team(participants, teams)
     # print(teams)
 
@@ -408,6 +416,9 @@ def email_all_teams(server, port, sender, password, spreadsheet, subject, templa
         for member in team.members:
             recipients.append(member.email)
         # print(f'Team {team.id}\'s recipients: {recipients}')
+        if recipients == []:
+            print(f'Team {team.id} is empty. Skipping to the next team.')
+            continue
         send_mail(server, port, recipients, sender, password, subject, template, body=None, team=team)
     
 def find_highest_team_number(participants: List) -> int:
@@ -420,8 +431,10 @@ def find_highest_team_number(participants: List) -> int:
 
 def add_participant_to_their_team(participants: List, teams: List):
     """ Go through the rows of participants and add them to their teams. """
+    print(f'These are the teams: {teams}')
     for participant in participants:
         # print(f'Adding {participant.first_name} with Team ID {participant.team_id} to Team {teams[participant.team_id - 1]}\n')
+        print(f'This should be the list index: {participant.team_id}')
         teams[int(participant.team_id) - 1].members.append(participant)  # -1 b/c zero index.
     print(teams)
 

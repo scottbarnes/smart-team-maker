@@ -1,0 +1,17 @@
+<html>
+<body>
+<p>Hello, Team {{ team.id }}:</p>
+
+<p>Sorry for sending another email. We've noticed some people are having trouble contacting their team members.</p>
+<p>We told you we'd share each other's contact infomation with you, but we (or specifically Scott) only shared email addresses. Sorry about that! Here's more complete contact information. Note: some phone numbers may lack a country code, which is why we included one's university and nationality.</p>
+<ul>
+  {% for member in team.members %}
+	  <li>{{ member.first_name }} {{ member.last_name }}. Email: {{ member.email }}, Phone: {{ member.contact_number }}, University: {{ member.university }}, Nationality: {{ member. nationality }}</li>
+  {% endfor %}
+</ul>
+
+<p>Best regards,</p>
+<p>Jia-Wei</p>
+</ul>
+</body>
+</html>

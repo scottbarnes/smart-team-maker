@@ -36,7 +36,7 @@ def send_mail(
     print(f'to: {to}')
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = sender_email
+    message["From"] = 'Jia-Wei'
     message["To"] = ', '.join(to)
     print(f'to: {message["To"]}')
 
